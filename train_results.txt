@@ -1,0 +1,2 @@
+=== Train Accuracy Results ===
+mmdcos[0] → 76.05% (took 435.09s)
