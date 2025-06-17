@@ -1,2 +1,0 @@
-=== Test Accuracy Results ===
-mmdcos[0] → 82.57%

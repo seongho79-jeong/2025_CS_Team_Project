@@ -1,0 +1,19 @@
+=== Test Accuracy Results ===
+base[0] → 77.71%
+base[1] → 77.71%
+base[2] → 78.86%
+mmd[0] → 75.71%
+mmd[1] → 80.57%
+mmd[2] → 78.86%
+fact[0] → 86.57%
+fact[1] → 80.86%
+fact[2] → 83.71%
+mmdcos[0] → 78.57%
+mmdcos[1] → 80.29%
+mmdcos[2] → 81.14%
+fpjgc[0] → 76.57%
+fpjgc[1] → 79.43%
+fpjgc[2] → 72.29%
+lapar[0] → 76.29%
+lapar[1] → 83.43%
+lapar[2] → 77.43%

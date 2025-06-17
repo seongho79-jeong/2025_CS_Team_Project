@@ -1,0 +1,4 @@
+=== Test Accuracy Results ===
+fpjgc[0] → 83.71%
+fpjgc[1] → 83.14%
+fpjgc[2] → 77.14%

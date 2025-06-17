@@ -1,0 +1,4 @@
+=== Train Accuracy Results ===
+fpjgc[0] → 80.93% (took 739.50s)
+fpjgc[1] → 82.05% (took 741.43s)
+fpjgc[2] → 81.46% (took 739.08s)
