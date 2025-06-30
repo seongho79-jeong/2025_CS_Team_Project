@@ -4,26 +4,25 @@
 최근 딥러닝 모델은 대규모 데이터에 기반해 뛰어난 성능을 달성하고 있지만, 
 훈련(Source) 환경과 배포(Target) 환경 사이의 도메인 편차(Domain Shift)가 존재할 때 
 성능이 급격히 저하되는 한계를 드러낸다. 이러한 문제를 해결하고자 제안된 Task가 바로 
-도메인 일반화(Domain Generalization, DG) 이며, 해당 task 는 학습 단계에서 접하지 
-않은 도메인에서도 일관된 성능을 유지하는 표현을 학습하는 것을 목적으로 하며 본 
-보고서에서는 과제에서 제시한것중 세가지 방법과, 새로 아이디어를 낸 세가지 방법을 
-비교하였다.
+도메인 일반화(Domain Generalization, DG) 이다.\\
+해당 task 는 학습 단계에서 접하지 않은 도메인에서도 일관된 성능을 유지하는 표현을 
+학습하는 것을 목적으로 하며 본 보고서에서는 과제에서 제시한것중 세가지 방법과, 
+새로 아이디어를 낸 두가지 방법을 비교하였다.
 
 \subsection{과제에서 제시한 방법}
-\begin{enumerate}[leftmargin=2em]
+\begin{itemize}[leftmargin=2em]
   \item ResNet-50 기반 Baseline
   \item 통계적 정렬 계열 기법인 MMD
   \item 주파수 기반 증강 기법인 FACT
-\end{enumerate}
+\end{itemize}
 
 \subsection{새로운 아이디어를 더한 방법}
-\begin{enumerate}[leftmargin=2em]
+\begin{itemize}[leftmargin=2em]
   \item MMD + Cosine Similarity 정렬 손실
   \item FPJ-GC : Fourier‑Phase Jitter with Graph Consistency
-  \item LaPaR : Latent‑Patch Re‑Masking
-\end{enumerate}
-
-각 방법의 이론적 배경과 구현 세부를 설명하고, PACS 데이터셋 및 비공개 Real 도메인에서의 
+\end{itemize}
+\vspace{1em}
+각 방법의 이론적 배경과 구현 세부를 설명하고, PACS\cite{li2017pacs} 데이터셋 및 비공개 Real 도메인에서의 
 실험 결과를 통해 제안 기법의 우수성과 안정성을 검증하는 것을 목표로 한다.
 
 %-------------------------------------------------------------------------
@@ -35,20 +34,45 @@
   \item \textbf{MMD} \cite{muandet2013invariant}:{“Domain Generalization via Invariant Feature Representation”}
   \item \textbf{FACT} \cite{xu2021fact}:{“A Fourier-based Framework for Domain Generalization”}
 \end{itemize}
-
+\vspace{1em}
 \subsection{Base Code}
-..
+도메인 일반화 시험에 앞서, Project에서 제시된 ResNet-50기반의 코드로 시험을 먼저 진행하였다.\\
+Traning에서 최대 정확도는 Table~\ref{tab:BaseCodeResults}에서 보이듯, 
+평균적으로 69.76\%를 달성했으며, 실제 사진으로 구축한 Test Set에서는 평균 78.09\%의 정확도를 보여준다.
+\vspace{1em}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{cccc}
+  \toprule
+  Iterations & Training & Test & Diff \\
+  \midrule
+  1 & 69.58\% & 77.71\% & 8.13\% \\
+  2 & 70.78\% & 77.71\% & 6.93\% \\
+  3 & 68.92\% & 78.86\% & 9.94\% \\
+  Avg. & 69.76\% & 78.09\% & 9.33\% \\
+  \bottomrule
+  \end{tabular}
+  \caption{Base Code: Results from 3 Experimental Iterations}
+  \label{tab:BaseCodeResults}
+\end{table}
+
+\subsubsection{Training and Test}
+Training 과정에서는 아래 Fig~\ref{fig:BASE1}에서 보이듯 Epoch 2번 이후 
+60\%에서 70\%사이에서 정확도가 머무는 것을 볼 수 있다. 이로 인해서 3번의 시험 모두 
+10 Epoch 학습 후 68\%에서 70\%의 정확도를 보인다.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{images/temp.png}
+  \includegraphics[width=\linewidth]{images/base_run0.png}
   \caption{Base Line}
   \label{fig:BASE1}
 \end{figure}
 
 \subsection{MMD}
+\label{MMD}
 Team project reference 논문 중 하나인 “Domain Generalization via Invariant 
-Feature Representation” 의 일반화 방법이며 도메인 간 Global Alignment 를 잘 수행하여 각 
+Feature Representation”\cite{muandet2013invariant} 의 일반화 방법이며 도메인 간 Global Alignment 를 잘 수행하여 각 
 객체에 대한 Invariant Feature Representation 을 획득해 일반화를 수행하는 것을 목표로 한다.
 
 \subsubsection{Main Idea}
@@ -61,16 +85,37 @@ Representation 학습하게 된다.
 Embedding 을 구하고 모든 도메인 쌍에 대해 차를 합산. 이를 이용하여 두 Feature Distribution을 
 일치시키는 방법론이다.
 
+\subsubsection{Training and Test}
+3번의 반복 Training 과정에서는 Base Code보다 약 2\% 향상된 성능을 보여주지만,
+실제 사진 Test Set에서는 큰 차이를 보이지 못한다.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{cccc}
+  \toprule
+  Iterations & Training & Test & Diff\\
+  \midrule
+  1 & 68.92\% & 75.71\% & 6.79\% \\
+  2 & 72.63\% & 80.57\% & 7.94\% \\
+  3 & 74.85\% & 78.86\% & 4.01\% \\
+  Avg. & 72.13\% & 78.38\% & 6.25\% \\
+  \bottomrule
+  \end{tabular}
+  \caption{MMD: Results from 3 Experimental Iterations}
+  \label{tab:MMD: Results from 3 Experimental Iterations}
+\end{table}
+
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{images/temp.png}
+  \includegraphics[width=\linewidth]{images/mmd_run0.png}
   \caption{MMD}
   \label{fig:MMD1}
 \end{figure}
 
 \subsection{FACT}
+\label{FACT}
 Final Team Project Reference 논문 중 하나인 “A Fourier-based Framework for Domain 
-Generalization” 의 일반화 방법이며 저주파 진폭은 도메인 특유의 정보를 많이 담고있다는 걸 이용하여 
+Generalization” \cite{xu2021fact} 의 일반화 방법이며 저주파 진폭은 도메인 특유의 정보를 많이 담고있다는 걸 이용하여 
 저주파 진폭에 대한 가짜 도메인을 FFT 를 통해 증강하여 네트워크가 저주파 진폭에 대한 의존도를 줄이고 
 위상에 대한 의존도를 높이게끔 유도하여 Invariant Representation 을 습득하고자 하는 방법론이다.
 
@@ -86,9 +131,33 @@ Generalization” 의 일반화 방법이며 저주파 진폭은 도메인 특�
 선형보간을 수행해 Amplitude 에 Mix 을 수행한다. 이후, iFFT 를 통해 공간 도메인을 복원하고 
 Student/Teacher 에 동시 입력하여 원본과 Mix 간 이미지 예측값이 모두 일관되도록 수행한다.
 
+\subsubsection{Training and Test}
+FACT 모델에서는 Base Code보다 Training시의 정확도도 높게 측정되지만, Test Set에서의 정확도도 매우 
+높게 측정되었다. 추가된 알고리즘이 Training 과정에서 학습된 Data간에도 잘 판단하고 있지만,
+그것이 새로운 Domain에도 잘 넘어온다고 판단 할 수 있다.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{cccc}
+  \toprule
+  Iterations & Training & Test & Diff \\
+  \midrule
+  1 & 77.31\% & 86.57\% & 9.26\% \\
+  2 & 72.22\% & 80.86\% & 8.64\% \\
+  3 & 75.03\% & 83.71\% & 8.68\% \\
+  Avg. & 74.85\% & 83.71\% & 8.86\% \\
+  \bottomrule
+  \end{tabular}
+  \caption{FACT: Results from 3 Experimental Iterations}
+  \label{tab:FACTResults}
+\end{table}
+
+Training시에 추가된 학습 Config들이 민감하게 설정되었는지 70\%이상부터는 정확도가 진동하는 모습을 보인다. 
+Config의 조정으로 좀 더 나은 성능을 낼 수 있을것으로 추측된다.
+
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{images/temp.png}
+  \includegraphics[width=\linewidth]{images/fact_run0.png}
   \caption{FACT}
   \label{fig:FACT1}
 \end{figure}
@@ -96,16 +165,15 @@ Student/Teacher 에 동시 입력하여 원본과 Mix 간 이미지 예측값이
 %-------------------------------------------------------------------------
 
 \section{Proposed methods}
-해당 섹션에서는 우리가 제안하는 방법론인 아래 세가지 방법에 대해서 설명하고자 한다.
+해당 섹션에서는 우리가 제안하는 방법론인 아래 두가지 방법에 대해서 설명하고자 한다.
 \vspace{1em}
 \begin{itemize}[leftmargin=2em]
   \item MMD-Cos : MMD + Cosine Similarity
   \item FPJ-GC : Fourier‑Phase Jitter with Graph Consistency
-  \item LaPaR : Latent‑Patch Re‑Masking
 \end{itemize}
+\vspace{1em}
 
 \subsection{MMD-Cos}
-
 기존 MMD 는 Gaussian Kernel 을 통해 변환된 Feature 를 서로 근사시키는데 반해, 
 해당 방법은 Gaussian Kernel 을 Cosine Simiarity 로 바꿈으로써 Gaussian Kernel의 
 Hyper Parameter Choice 에서도 자유롭고, 직접적으로 벡터의 방향만 비교함으로써 
@@ -114,9 +182,31 @@ Hyper Parameter Choice 에서도 자유롭고, 직접적으로 벡터의 방향�
 \subsubsection{Method}
 Gaussian Kernel 을 Cosine Similarity 로 변환하여 MMD 를 수행한다.
 
+\subsubsection{Training and Test}
+Project에서 제시한 방법인 Section~\ref{MMD} MMD의 결과에 비해서 Training Set의 정확도는 
+감소했지만, Test Set에서의 정확도는 증가한 모습을 볼 수 있다. 추가된 Cosine Similarity로 인해서 
+같은 Domain에서의 정확도는 조금 감소하고, 알지못하는 Domain에 대한 정확도는 증가 한 것을 알 수 있다. 
+이 방법이 기존의 MMD 방법에 비해서 일반화가 더 잘되고있다고 볼 수 있다.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{cccc}
+  \toprule
+  Iterations & Training & Test & Diff \\
+  \midrule
+  1 & 70.06\% & 78.57\% & 8.51\% \\
+  2 & 71.80\% & 80.29\% & 8.49\% \\
+  3 & 72.34\% & 81.14\% & 8.80\% \\
+  Avg. & 71.40\% & 80.00\% & 8.60\% \\
+  \bottomrule
+  \end{tabular}
+  \caption{MMD-Cos: Results from 3 Experimental Iterations}
+  \label{tab:MMD-CosResults}
+\end{table}
+
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{images/temp.png}
+  \includegraphics[width=\linewidth]{images/mmdcos_run0.png}
   \caption{MMD-Cos}
   \label{fig:MMD-Cos1}
 \end{figure}
@@ -129,7 +219,72 @@ Phase 스펙트럼에 저/고주파별 미세 노이즈를 가해 Style-invarian
 \subsubsection{Main Idea}
 Amplitude (FACT, Mix-style) 과 달리 phase 를 조작하며 개별 샘플 일치 대신 
 배치-전역 그래프 일관성으로 보다 안정적으로 수렴하게 하여 강인한 feature를 획득하여 
-일반화 능력을 강화한다.
+일반화 능력을 강화한다.\\
+이 방식은 일반적으로 Self-supervised/Contrastive 학습에서 많이 쓰이는 방법이나 
+이것을 DG에 응용햐였다.\\
+
+아래의 Fig~\ref{fig:FPJ-GC Jitter Image}에서 보이듯, Original 이미지에 Jitter를 추가한 이미지를 생성하고,
+둘간의 차이를 없애는 방향으로 학습을 시켜, Domain에 일반화 되도록한다.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{images/fpj-gc-jitter-image.png}
+  \caption{FPJ-GC Jitter Image}
+  \label{fig:FPJ-GC Jitter Image}
+\end{figure}
+
+코드상으로 아래와 같이 구현하였다.
+\paragraph*{Jitter 이미지 생성\\}
+\vspace{1em}
+
+Original이미지에서 Fig~\ref{fig:FPJ-GC Jitter Image}에서 보이는 Jitter를 추가한 이미지를 만드는 부분이다.\\
+
+\begin{lstlisting}
+def phase_jitter(x, r_split=0.25, sigma_l=0.05, sigma_h=0.1):
+    B, C, H, W = x.shape
+    fft   = torch.fft.rfft2(x, norm='ortho')
+    amp, ph = torch.abs(fft), torch.angle(fft)
+
+    fy = torch.fft.fftfreq (H, d=1./H).to(x.device)
+    fx = torch.fft.rfftfreq(W, d=1./W).to(x.device)
+    R  = torch.sqrt(fy[:, None]**2 + fx[None, :]**2)
+
+    mask_low  = (R <= r_split)
+    mask_high = ~mask_low
+
+    eps_l = sigma_l * torch.randn_like(ph)
+    eps_h = sigma_h * torch.randn_like(ph)
+
+    ph_j  = ph + eps_l * mask_low + (-eps_h) * mask_high
+    jitter = torch.fft.irfft2(amp * torch.exp(1j * ph_j),
+                            s=(H, W), norm='ortho')
+    return jitter.type_as(x)
+\end{lstlisting}
+
+\paragraph*{Jitter 이미지와 일관성을 위한 Loss 계산 수정\\}
+\vspace{1em}
+
+Original이미지와 Jitter가 추가된 이미지를 모두 model을 돌려서 나온 Loss를 활용해서, 
+두 그래프간 일관성을 부여하는 방식으로 Domain 일반화를 진행한다. 이때 필요한 Loss와 일관성 부여를 
+하는 코드이다.
+
+\begin{lstlisting}
+outputs_ori = model_fpjgc(inputs)
+outputs_jit = model_fpjgc(inputs_jit)
+
+loss_cls = criterion_fpjgc(outputs_ori, labels) + criterion_fpjgc(outputs_jit, labels)
+
+with torch.no_grad():
+    feat_ori = feature_extractor(inputs ).view(inputs.size(0), -1)
+    feat_jit = feature_extractor(inputs_jit).view(inputs.size(0), -1)
+z  = F.normalize(feat_ori, dim=1)
+zt = F.normalize(feat_jit, dim=1)
+S  = z  @ z .T            # (B,B)
+St = zt @ zt.T
+loss_graph = F.mse_loss(S, St)
+
+loss = loss_cls + lambda_graph * loss_graph
+\end{lstlisting}
 
 \subsubsection{Pros}
 Phase 중심 변조를 통해 shape-shift 도메인에 강하고 배치레벨 그래프를 통해 개별 
@@ -141,46 +296,35 @@ amplitude 변환을 통해 도메인에 대한 정보 의존도를 줄여 일반
 방식들과 다르게, phase jitter 를 통해 보다 robust 한 특성을 직접적으로 습득하면서 
 Graph consistency 를 원본과 변형의 관계 유지용으로 사용하기에 기존 연구와의 차이가 있다.
 
+\subsubsection{Training and Test}
+아래 Table~\ref{tab:FPJ-GC-Results}에서 보이듯 FPJ-GC는 Training Set에서와 Test Set에서 
+정확도의 차이가 가장 작은것을 알 수 있다. 거의 동일한 성능을 보여주고 있으며, Test Set에서의 정확도도 
+높은 모습을 보여주고 있다.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{cccc}
+  \toprule
+  Iterations & Training & Test & Diff \\
+  \midrule
+  1 & 80.93\% & 83.71\% & 2.78\% \\
+  2 & 82.05\% & 83.14\% & 1.09\% \\
+  3 & 81.46\% & 77.14\% & -4.32\% \\
+  Avg. & 81.48\% & 81.33\% & -0.15\% \\
+  \bottomrule
+  \end{tabular}
+  \caption{FPJ-GC: Results from 3 Experimental Iterations}
+  \label{tab:FPJ-GC-Results}
+\end{table}
+
+아래 Fig~\ref{fig:FPJ-GC1}에서 보이듯, 가장 안정적인 학습 패턴을 보여주고 있다. 
+큰 진동 없이 최고 약 81.5\%까지 정확도가 올라가는 모습을 보인다.
+
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{images/temp.png}
+  \includegraphics[width=\linewidth]{images/fpjgc_run0.png}
   \caption{FPJ-GC}
   \label{fig:FPJ-GC1}
-\end{figure}
-
-\subsection{LaPaR}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-
-\subsubsection{Main Idea}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-
-\subsubsection{Pros}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-
-\subsubsection{Differences from existing methodologies}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{images/temp.png}
-  \caption{LaPaR}
-  \label{fig:LaPaR1}
 \end{figure}
 
 %-------------------------------------------------------------------------
@@ -188,180 +332,45 @@ Graph consistency 를 원본과 변형의 관계 유지용으로 사용하기에
 \section{Experimental Results}
 해당 섹션은 위에서 설명한 방법론들과 base 모델 간 비교를 통해 성능비교를 수행한다. 
 
-\subsubsection{Experimental Environment}
+\subsection{Experimental Environment}
 \subsubsection{Baseline}
 assignment 기본 설정에서 어떠한 변화를 주지 않고 classification 을 수행하며, 이후 실험 
 또한 추가되는 방법에 대한 모듈을 제외한 모든 실험 환경은 baseline 과 동일하다.
 
 \subsubsection{Method module config}
-\begin{alltt}
+\begin{lstlisting}
 MMD : sigma = (1, 2, 4, 8), lambda = 0.1
-FACT : eta = 0.3, beta = 0.25, 
-       temperature= 3.0 
+FACT : eta = 0.3, beta = 0.25, temperature= 3.0 
 MMD-Cos : lambda = 1.0
 FPJ-GC : lambda graph = 0.2
-\end{alltt}
+\end{lstlisting}
 
 \subsubsection{Dataset}
 학습에는 기존 실험세팅에서 주어진 pre-trained weight 와 PACS dataset 을 사용했으나, test 셋은 PACS와 
 동일한 카테고리를 지닌 실제 이미지들을 크롤링하여 50장씩 구성한 CuratedPACS 를 따로 구축하여 
 성능비교 데이터셋으로 사용함. 
 
-\subsection{Results}
-\subsubsection{Base Code}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-\begin{table}[h]
-  \centering
-  \begin{tabular}{lrrr}
-  \toprule
-  Iterations & Training & Test \\
-  \midrule
-  1 & -\% & -\% \\
-  2 & -\% & -\% \\
-  3 & -\% & -\% \\
-  \bottomrule
-  \end{tabular}
-  \caption{Base Code: Results from 3 Experimental Iterations}
-  \label{tab:Base Code: Results from 3 Experimental Iterations}
-\end{table}
-
-\subsubsection{MMD}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-\begin{table}[h]
-  \centering
-  \begin{tabular}{lrrr}
-  \toprule
-  Iterations & Training & Test \\
-  \midrule
-  1 & -\% & -\% \\
-  2 & -\% & -\% \\
-  3 & -\% & -\% \\
-  \bottomrule
-  \end{tabular}
-  \caption{MMD: Results from 3 Experimental Iterations}
-  \label{tab:MMD: Results from 3 Experimental Iterations}
-\end{table}
-
-\subsubsection{FACT}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-\begin{table}[h]
-  \centering
-  \begin{tabular}{lrrr}
-  \toprule
-  Iterations & Training & Test \\
-  \midrule
-  1 & -\% & -\% \\
-  2 & -\% & -\% \\
-  3 & -\% & -\% \\
-  \bottomrule
-  \end{tabular}
-  \caption{FACT: Results from 3 Experimental Iterations}
-  \label{tab:FACT: Results from 3 Experimental Iterations}
-\end{table}
-
-\subsubsection{MMD-Cos}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-\begin{table}[h]
-  \centering
-  \begin{tabular}{lrrr}
-  \toprule
-  Iterations & Training & Test \\
-  \midrule
-  1 & -\% & -\% \\
-  2 & -\% & -\% \\
-  3 & -\% & -\% \\
-  \bottomrule
-  \end{tabular}
-  \caption{MMD-Cos: Results from 3 Experimental Iterations}
-  \label{tab:MMD-Cos: Results from 3 Experimental Iterations}
-\end{table}
-
-\subsubsection{FPG-GC}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-\begin{table}[h]
-  \centering
-  \begin{tabular}{lrrr}
-  \toprule
-  Iterations & Training & Test \\
-  \midrule
-  1 & -\% & -\% \\
-  2 & -\% & -\% \\
-  3 & -\% & -\% \\
-  \bottomrule
-  \end{tabular}
-  \caption{FPG-GC: Results from 3 Experimental Iterations}
-  \label{tab:FPG-GC: Results from 3 Experimental Iterations}
-\end{table}
-
-\subsubsection{LaPaR}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-\begin{table}[h]
-  \centering
-  \begin{tabular}{lrrr}
-  \toprule
-  Iterations & Training & Test \\
-  \midrule
-  1 & -\% & -\% \\
-  2 & -\% & -\% \\
-  3 & -\% & -\% \\
-  Avg. & -\% & -\% \\
-  \bottomrule
-  \end{tabular}
-  \caption{LaPaR: Results from 3 Experimental Iterations}
-  \label{tab:LaPaR: Results from 3 Experimental Iterations}
-\end{table}
-
 \subsection{Analysis}
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
-분석 내용 작성 예정\\
 \begin{table}[h]
   \centering
-  \begin{tabular}{lrr}
+  \begin{tabular}{lccc}
     \toprule
-    & \multicolumn{2}{c}{Average Accuracy}\\
-    \cmidrule(r){2-3}
-    Model & Training & Test\\
+    & \multicolumn{3}{c}{Average Accuracy} \\
+    \cmidrule(r){2-4}
+    Model & Training & Test & Diff \\
     \midrule
-    Base Code & -\% & -\%\\
-    MMD & -\% & -\%\\
-    FACT & -\% & -\%\\
-    MMD-Cos & -\% & -\%\\
-    FPG-GC & -\% & -\%\\
-    LaPaR & -\% & -\%\\
+    Base Code  & 69.76\% & 79.09\% & 9.33\% \\
+    MMD        & 72.13\% & 78.38\% & 6.25\% \\
+    FACT       & 74.85\% & 83.71\% & 8.86\% \\
+    MMD-Cos    & 71.40\% & 80.00\% & 8.60\% \\
+    FPJ-GC     & 81.48\% & 81.33\% & -0.15\% \\
     \bottomrule
   \end{tabular}
   \caption{Final Results about all models}
-  \label{tab:Final Results about all models}
+  \label{tab:FinalResultsAllModels}
 \end{table}
 
-
+Table~\ref{tab:FinalResultsAllModels}에서 보이듯, 
 모든 제안 기법이 Baseline 대비 일관된 성능 향상을 달성하였다. 다만 다음 세 가지 실험적 제약을 고려할 필요가 있다.
 
 \begin{enumerate}
@@ -389,6 +398,20 @@ FPJ-GC : lambda graph = 0.2
 기본 설정을 변경하게 되므로 실험에 영향을 줄 수 있기에 채택하지 않았다. 다른 방법으로 
 우리는 여러번의 실험을 통해 평균적인 모델 성능을 구하여 방법론 자체가 가져온 효과를 보다 
 신뢰성 있게 평가하는 방식을 선택했다.
+
+\subsection{Training 과 test 간 성능차이}
+FPJ-GC 모델을 제외한 모든 모델이 Training 보다 unseen domain 인 test 에서의 성능이 10\%p 
+정도 높은 문제점을 관측했다. 해당 문제는 test set 인 CuratedPACS 데이터 셋의 한계로 인해 발생했을 것으로 추정된다. 
+CuratedPACS 데이터셋은 real domain 에서의 모델들의 성능평가를 위해 인터넷에서 크롤링한 이미지로 각 클래스마다 
+50장씩 구성하였다. 데이터셋 구축 과정에서 현실적인 이유로 이미지들의 난이도와 다양성 같은 문제들을 고려하기 어려웠고 
+아무리 이미지를 잘 선정했다 하더라도 50장이라는 수치 자체가 데이터의 편향성을 가져올 가능성이 존재한다.\\
+그러한 이유들로 인해 training 성능보다 test 성능이 높을 수 있으며 해당 문제는 훨씬 더 많고 다양한 이미지를 보강하는 
+형태로 해결이 가능할 것으로 추정된다. 다른 원인으로는, 온전히 수렴하기 까지 충분하지 못한 epoch 과 color jittering 이 
+매 로드마다 달라지는 걸 생각해 볼 수 있을 것 같다. 위 문제들은 test 데이터셋의 확충 및 충분한 epoch 을 통한 
+온전한 수렴으로 해결 될 수 있을 것으로 보여진다.\\
+Test Set의 정상성을 보장 할 수 없기 때문에 이 모델들을 평가하는데 있어서, Test Set에서의 정확도 보다는 
+Training Set과 Test Set의 차이가 적은 Model이 일반성이 높을것으로 판단하였다. 이러한 면에서, FPJ-GC는 Traning Set에서와 
+Test Set에서의 정확도가 거의 비슷하므로 일반화가 잘 되었다고 판단하였다.
 
 \subsection{FPJ-GC 모델 선정 이유}
 Curated PACS 평가에서는 Cosine Similarity와 FPJ-GC가 모두 높은 정확도를 보였다. 
